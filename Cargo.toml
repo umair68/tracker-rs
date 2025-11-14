@@ -1,0 +1,31 @@
+[package]
+name = "tracker"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.8.6"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_urlencoded = "0.7"
+toml = "0.8"
+dashmap = "5"
+anyhow = "1"
+thiserror = "2.0.17"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+reqwest = { version = "0.12.24", features = ["json"] }
+hex = "0.4"
+tower = "0.5.2"
+tower-http = { version = "0.6.6", features = ["trace"] }
+hyper = "1"
+hyper-util = { version = "0.1", features = ["tokio", "server", "server-auto"] }
+http-body-util = "0.1"
+num_cpus = "1"
+rand = "0.9.2"
+itoa = "1"
+
+[dev-dependencies]
+tempfile = "3"
+http-body-util = "0.1"

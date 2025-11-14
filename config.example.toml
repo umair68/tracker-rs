@@ -1,0 +1,210 @@
+# BitTorrent Tracker Configuration Example
+# This file contains all available configuration options with sensible defaults
+# Copy this file to config.toml and adjust values as needed
+
+# =============================================================================
+# Server Configuration
+# =============================================================================
+[server]
+# TCP port to listen on (optional if unix_socket is specified)
+# Set to null or omit to disable TCP listening
+port = 8001
+
+# Unix socket path to listen on (optional if port is specified)
+# Set to null or omit to disable Unix socket listening
+# Both TCP and Unix socket can be enabled simultaneously
+# Example: unix_socket = "/tmp/tracker.sock"
+unix_socket = "/tmp/tracker.sock"
+
+# Number of worker threads for the Tokio runtime
+# Default: number of CPU cores
+# Recommended: set to number of CPU cores for optimal performance
+num_threads = 8
+
+# Maximum number of concurrent connections
+# Default: 10000
+# Adjust based on expected load and system resources
+max_connections = 10000
+
+# =============================================================================
+# Memory Configuration
+# =============================================================================
+[memory]
+# Maximum number of peers to store in memory
+# Default: 1000000 (1 million)
+# Each peer consumes approximately 200-300 bytes
+# 1M peers ≈ 200-300 MB of memory
+peer_capacity = 1000000
+
+# Maximum number of torrents to cache
+# Default: 100000
+# Adjust based on the number of active torrents in your tracker
+torrent_cache_size = 100000
+
+# Maximum number of users to cache
+# Default: 50000
+# Adjust based on the number of active users in your tracker
+user_cache_size = 50000
+
+# =============================================================================
+# Performance Configuration
+# =============================================================================
+[performance]
+# Minimum announce interval in seconds
+# Default: 900 (15 minutes)
+# Clients announcing faster than this will receive an error
+# Set to 0 to disable interval checking
+min_announce_interval = 900
+
+# Maximum requests per minute per IP address
+# Default: 100
+# Used for rate limiting to prevent abuse
+# Clients exceeding this limit will receive an error
+max_requests_per_minute = 100
+
+# Cleanup interval in seconds
+# Default: 300 (5 minutes)
+# How often to run the background task that removes stale peers
+cleanup_interval = 300
+
+# Peer timeout in seconds
+# Default: 3600 (1 hour)
+# Peers that haven't announced within this time are considered stale
+# and will be removed during cleanup
+peer_timeout = 3600
+
+# =============================================================================
+# External API Synchronization
+# =============================================================================
+[sync]
+# URL endpoint to fetch user and torrent data from
+# This should point to your PHP/Laravel API endpoint
+# The tracker will fetch data from this endpoint on startup and reload
+data_endpoint = "http://localhost:8000/api/tracker/data"
+
+# API key for authenticating with the external API
+# This key is sent in the request headers and used for admin endpoints
+# Keep this secret and use a strong random value
+api_key = "your-secret-api-key-change-this"
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+[logging]
+# Log level: trace, debug, info, warn, error
+# Default: info
+# - trace: Very detailed execution traces (use for debugging only)
+# - debug: Detailed request/response information
+# - info: Important events (startup, shutdown, cache reload)
+# - warn: Warnings and suspicious activity (anti-cheat violations)
+# - error: Critical errors that need immediate attention
+level = "info"
+
+# Log format: json, console
+# Default: json
+# - json: Structured JSON output for production (recommended for log aggregation)
+# - console: Human-readable output for development
+format = "json"
+
+# Optional: Path to write logs to a file
+# If omitted, logs are written to stdout only
+# path = "./tracker.log"
+
+# Enable console output with pretty formatting
+# Default: false
+# Set to true for development/debugging with human-readable output
+# Set to false for production with JSON output
+console = false
+
+# =============================================================================
+# Anti-Cheat Configuration
+# =============================================================================
+[anti_cheat]
+# Maximum number of unique IP addresses per user per torrent
+# Default: 3
+# Users exceeding this limit will receive an error
+# This prevents ratio manipulation by announcing from multiple IPs
+max_ips_per_user = 3
+
+# Maximum realistic upload/download ratio
+# Default: 1000.0
+# Peers with ratios exceeding this will trigger a warning log
+# This helps detect ratio manipulation
+max_ratio = 1000.0
+
+# Maximum realistic upload speed in bytes per second
+# Default: 1073741824 (1 GB/s)
+# Peers exceeding this speed will trigger a warning log
+# Adjust based on your users' typical connection speeds
+max_upload_speed = 1073741824.0
+
+# Maximum realistic download speed in bytes per second
+# Default: 1073741824 (1 GB/s)
+# Peers exceeding this speed will trigger a warning log
+# Adjust based on your users' typical connection speeds
+max_download_speed = 1073741824.0
+
+# Minimum upload amount for seeders in bytes
+# Default: 1048576 (1 MB)
+# Seeders with less than this amount uploaded will trigger a warning log
+# This helps detect "ghost seeders" (fake seeders)
+min_seeder_upload = 1048576
+
+# =============================================================================
+# Security Configuration (Optional)
+# =============================================================================
+[security]
+# List of banned IP addresses (both IPv4 and IPv6 supported)
+# Clients from these IPs will be rejected immediately
+# You can also manage this list via the /ip/ban and /ip/unban API endpoints
+banned_ips = [
+    # "192.168.1.100",
+    # "10.0.0.50",
+    # "2001:db8::1",
+]
+
+# List of banned BitTorrent client strings
+# Clients with User-Agent headers matching these strings (substring match) will be rejected
+# You can also manage this list via the /client/ban and /client/unban API endpoints
+banned_clients = [
+    # "BadClient/1.0",
+    # "SpamBot",
+]
+
+# =============================================================================
+# Configuration Notes
+# =============================================================================
+# 
+# 1. At least one of 'port' or 'unix_socket' must be specified in [server]
+# 2. The tracker loads all user and torrent data into memory on startup
+# 3. Use the /reload endpoint to refresh data from the external API
+# 4. All admin endpoints require the API key specified in [sync]
+# 5. Anti-cheat checks log warnings but do not block announces
+# 6. Adjust memory limits based on your expected load and available RAM
+# 7. For production, use JSON logging format for better log aggregation
+# 8. Monitor the /metrics endpoint to track performance and usage
+# 
+# =============================================================================
+# API Endpoints
+# =============================================================================
+# 
+# Public:
+#   GET  /announce          - BitTorrent announce endpoint
+#   GET  /health            - Health check (no auth required)
+# 
+# Admin (require API key):
+#   GET  /metrics           - Performance metrics
+#   GET  /update            - Export peer and torrent data
+#   POST /reload            - Reload user and torrent data from external API
+#   GET  /torrent/add       - Add a torrent to the cache
+#   GET  /torrent/remove    - Remove a torrent from the cache
+#   GET  /user/add          - Add a user to the cache
+#   GET  /user/remove       - Remove a user from the cache
+#   GET  /ip/ban            - Ban an IP address
+#   GET  /ip/unban          - Unban an IP address
+#   GET  /ip/list           - List all banned IPs
+#   GET  /client/ban        - Ban a client string
+#   GET  /client/unban      - Unban a client string
+#   GET  /client/list       - List all banned clients
+# 
+# =============================================================================
